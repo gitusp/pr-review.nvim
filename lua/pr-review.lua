@@ -39,7 +39,7 @@ end
 
 local function checkout(pr_number)
   vim.notify("Checking out PR " .. pr_number, vim.log.levels.INFO)
-  checkout_result = vim.fn.system('gh pr checkout ' .. pr_number .. ' 2>&1')
+  local checkout_result = vim.fn.system('gh pr checkout ' .. pr_number .. ' 2>&1')
   if vim.v.shell_error ~= 0 then
     error("Failed to checkout PR: " .. checkout_result)
   end
