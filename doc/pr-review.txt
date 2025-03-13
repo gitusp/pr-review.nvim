@@ -1,0 +1,118 @@
+*pr-review.txt*   Plugin for GitHub PR review workflows in Neovim
+
+==============================================================================
+CONTENTS                                                   *pr-review-contents*
+
+  1. Introduction............................................|pr-review-intro|
+  2. Requirements..........................................|pr-review-requirements|
+  3. Installation.........................................|pr-review-installation|
+  4. Commands..............................................|pr-review-commands|
+  5. Usage.................................................|pr-review-usage|
+    5.1. Browsing PRs......................................|pr-review-browsing|
+    5.2. Reviewing PRs.....................................|pr-review-reviewing|
+    5.3. Working with Comment Threads......................|pr-review-comments|
+  6. Health Check..........................................|pr-review-health|
+
+==============================================================================
+1. INTRODUCTION                                               *pr-review-intro*
+
+A Neovim plugin for GitHub PR review workflows focused on reading and
+navigating pull request information directly from your editor.
+
+Philosophy~
+
+This plugin focuses on *reading and reviewing* PRs rather than writing comments:
+
+- Simplifies the PR review workflow
+- Avoids reimplementing the full GitHub web UI
+- Stays focused on the strengths of terminal-based workflows
+- Minimizes the learning curve with familiar interfaces
+
+Features~
+
+- Browse and select PRs from a searchable list
+- Checkout PRs directly from Neovim
+- Review PRs with side-by-side diffs using fugitive
+- Display PR comments as diagnostics 
+- Toggle visibility of PR comment threads
+
+==============================================================================
+2. REQUIREMENTS                                        *pr-review-requirements*
+
+- Git (https://git-scm.com/)
+- GitHub CLI (gh) (https://cli.github.com/)
+- fzf-lua (https://github.com/ibhagwan/fzf-lua)
+- vim-fugitive (https://github.com/tpope/vim-fugitive)
+
+==============================================================================
+3. INSTALLATION                                        *pr-review-installation*
+
+Using lazy.nvim (https://github.com/folke/lazy.nvim):
+>lua
+  {
+    "gitusp/pr-review.nvim",
+    dependencies = {
+      "ibhagwan/fzf-lua",
+      "tpope/vim-fugitive",
+    },
+    lazy = true,
+    cmd = { "PRBrowse", "PRReview", "PRFetchThreads", "PRShowThreads", 
+             "PRHideThreads", "PRToggleThreads" },
+  }
+<
+
+==============================================================================
+4. COMMANDS                                              *pr-review-commands*
+
+                                                                  *:PRBrowse*
+:PRBrowse               Open a searchable list of PRs
+
+                                                                  *:PRReview*
+:PRReview               Review the current PR with side-by-side diffs
+
+                                                            *:PRFetchThreads*
+:PRFetchThreads         Fetch comment threads for the current PR
+
+                                                             *:PRShowThreads*
+:PRShowThreads          Display PR comment threads as diagnostics 
+
+                                                             *:PRHideThreads*
+:PRHideThreads          Hide PR comment threads
+
+                                                           *:PRToggleThreads*
+:PRToggleThreads        Toggle visibility of PR comment threads
+
+==============================================================================
+5. USAGE                                                     *pr-review-usage*
+
+5.1 Browsing PRs                                         *pr-review-browsing*
+
+1. Run |:PRBrowse| to see a list of PRs
+2. Actions in the PR browser:
+   - Enter: Open PR in your web browser
+   - Ctrl-o: Checkout the selected PR
+   - Ctrl-r: Checkout and start reviewing the PR
+
+5.2 Reviewing PRs                                       *pr-review-reviewing*
+
+When on a PR branch:
+
+1. Run |:PRReview| to:
+   - Fetch PR comment threads
+   - Open side-by-side diffs using fugitive
+
+5.3 Working with Comment Threads                         *pr-review-comments*
+
+- |:PRFetchThreads| - Load PR comments as diagnostics
+- |:PRShowThreads| - Show comment threads (after fetching)
+- |:PRHideThreads| - Hide comment threads
+- |:PRToggleThreads| - Toggle visibility of comment threads
+
+==============================================================================
+6. HEALTH CHECK                                             *pr-review-health*
+
+Run `:checkhealth pr-review` to verify that all dependencies are properly 
+installed.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:
