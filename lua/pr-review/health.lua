@@ -1,10 +1,9 @@
 local M = {}
 
 function M.check()
-  local health = require("health")
-  local start = health.report_start
-  local ok = health.report_ok
-  local error = health.report_error
+  local start = vim.health.start
+  local ok = vim.health.ok
+  local error = vim.health.error
 
   start("PR Review")
 
