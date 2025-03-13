@@ -180,7 +180,7 @@ function M.fetch_threads()
 end
 
 function M.review()
-  fetch_threads()
+  M.fetch_threads()
 
   vim.notify("Fetching PR information...", vim.log.levels.INFO)
   local gh_output = vim.fn.system('gh pr view --json baseRefName --jq .baseRefName 2>/dev/null')
@@ -212,7 +212,7 @@ function M.browse()
         if not success then
           vim.notify(result, vim.log.levels.ERROR)
         else
-          review()
+          M.review()
         end
       end,
     },
@@ -232,9 +232,9 @@ end
 
 function M.toggle_threads()
   if pr_threads_shown then
-    hide_threads()
+    M.hide_threads()
   else
-    show_threads()
+    M.show_threads()
   end
 end
 
