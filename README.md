@@ -20,6 +20,10 @@ This plugin focuses on **reading and reviewing** PRs rather than writing comment
 - Stays focused on the strengths of terminal-based workflows
 - Minimizes the learning curve with familiar interfaces
 
+## Screenshot
+
+<img height="400" alt="Side by side diff" src="https://github.com/user-attachments/assets/33d7f0c9-e09d-4c0f-8d9c-3bb11f6ac7de" />
+
 ## Requirements
 
 - [Git](https://git-scm.com/)
