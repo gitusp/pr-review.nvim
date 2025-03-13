@@ -125,9 +125,9 @@ function M.fetch_threads()
                 cb(threads, decoded.data.repository.pullRequests.nodes[1].baseRefName)
               end
             end,
-            on_stderr = function(_, data)
-              if #data > 0 and (data[1] ~= "" or #data > 1) then
-                vim.notify("Error fetching PR threads: " .. table.concat(data, "\n"), vim.log.levels.ERROR)
+            on_stderr = function(_, stderr_data)
+              if #stderr_data > 0 and (stderr_data[1] ~= "" or #stderr_data > 1) then
+                vim.notify("Error fetching PR threads: " .. table.concat(stderr_data, "\n"), vim.log.levels.ERROR)
               end
             end,
             on_exit = function(_, exit_code)
@@ -166,9 +166,9 @@ function M.fetch_threads()
         vim.notify("Loaded all the threads into diagnostics", vim.log.levels.INFO)
       end)
     end,
-    on_stderr = function(_, data)
-      if #data > 0 and (data[1] ~= "" or #data > 1) then
-        vim.notify("Error getting PR number: " .. table.concat(data, "\n"), vim.log.levels.ERROR)
+    on_stderr = function(_, stderr_data)
+      if #stderr_data > 0 and (stderr_data[1] ~= "" or #stderr_data > 1) then
+        vim.notify("Error getting PR number: " .. table.concat(stderr_data, "\n"), vim.log.levels.ERROR)
       end
     end,
     on_exit = function(_, exit_code)
@@ -204,13 +204,13 @@ function M.browse()
       ['ctrl-o'] = function(selected)
         local success, result = pcall(checkout, fst(selected))
         if not success then
-          vim.notify(result, vim.log.levels.ERROR)
+          vim.notify(result and tostring(result) or "Failed to checkout", vim.log.levels.ERROR)
         end
       end,
       ['ctrl-r'] = function(selected)
         local success, result = pcall(checkout, fst(selected))
         if not success then
-          vim.notify(result, vim.log.levels.ERROR)
+          vim.notify(result and tostring(result) or "Failed to checkout", vim.log.levels.ERROR)
         else
           M.review()
         end
