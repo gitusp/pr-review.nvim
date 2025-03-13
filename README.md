@@ -27,21 +27,27 @@ This plugin focuses on **reading and reviewing** PRs rather than writing comment
 - [fzf-lua](https://github.com/ibhagwan/fzf-lua)
 - [vim-fugitive](https://github.com/tpope/vim-fugitive)
 
-## Installation
+## Example Usage
 
-Using [lazy.nvim](https://github.com/folke/lazy.nvim):
+### Complete PR Review Workflow
 
-```lua
-{
-  "gitusp/pr-review.nvim",
-  dependencies = {
-    "ibhagwan/fzf-lua",
-    "tpope/vim-fugitive",
-  },
-  lazy = true,
-  cmd = { "PRBrowse", "PRReview", "PRFetchThreads", "PRShowThreads", "PRHideThreads", "PRToggleThreads" },
-}
-```
+1. Find and checkout a PR:
+   ```
+   :PRBrowse
+   ```
+   Navigate to the PR you want to review and press `Ctrl-o` to checkout or `Ctrl-r` to checkout and start reviewing.
+
+2. Review the PR with side-by-side diffs:
+   ```
+   :PRReview
+   ```
+
+3. Toggle comment visibility as needed:
+   ```
+   :PRToggleThreads
+   ```
+
+4. Navigate between files in the PR using fugitive's interface.
 
 ## Commands
 
