@@ -47,7 +47,7 @@ end
 
 function M.fetch_threads()
   vim.notify("Fetching PR threads...", vim.log.levels.INFO)
-  
+
   vim.fn.jobstart('gh pr view --json headRefName --jq .headRefName 2>/dev/null', {
     stdout_buffered = true,
     on_stdout = function(_, data)
@@ -55,7 +55,7 @@ function M.fetch_threads()
         vim.notify("Failed to get PR' headRefName. Are you on a PR branch?", vim.log.levels.ERROR)
         return
       end
-      
+
       local headRefName = data[1]:gsub('%s+$', '')
 
       local function load_threads(threads, cb, after)
@@ -101,7 +101,7 @@ function M.fetch_threads()
                 vim.notify("Failed to fetch PR threads", vim.log.levels.ERROR)
                 return
               end
-              
+
               local repository_json = table.concat(repository_data, '\n')
               local decoded = vim.fn.json_decode(repository_json)
 
@@ -118,7 +118,7 @@ function M.fetch_threads()
               for _, thread in ipairs(decoded.data.repository.pullRequests.nodes[1].reviewThreads.nodes) do
                 table.insert(threads, thread)
               end
-              
+
               if decoded.data.repository.pullRequests.nodes[1].reviewThreads.pageInfo.hasNextPage then
                 load_threads(threads, cb, decoded.data.repository.pullRequests.nodes[1].reviewThreads.pageInfo.endCursor)
               else
@@ -138,18 +138,18 @@ function M.fetch_threads()
           }
         )
       end
-      
+
       load_threads({}, function(threads, baseRefName)
         local base_path = vim.fn.trim(vim.fn.system('git rev-parse --show-toplevel')):gsub('%s+$', '')
         local merge_base = vim.fn.system('git merge-base origin/' .. baseRefName .. ' HEAD'):gsub('%s+$', '')
-      
+
         local buf_diagnostics = {}
         for _, thread in pairs(threads) do
           local hidden = thread.isResolved or thread.isOutdated
           local has_line = type(thread.startLine) == "number" or type(thread.line) == "number"
           if has_line and not hidden then
             local diag = build_diagnostic(base_path, merge_base, thread)
-            
+
             if not buf_diagnostics[diag.bufnr] then
               buf_diagnostics[diag.bufnr] = {}
             end
