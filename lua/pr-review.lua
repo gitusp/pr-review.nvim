@@ -39,16 +39,16 @@ end
 
 local function checkout(pr_number)
   vim.notify("Checking out PR " .. pr_number, vim.log.levels.INFO)
-  local checkout_result = vim.fn.system('gh pr checkout ' .. pr_number .. ' 2>&1')
-  if vim.v.shell_error ~= 0 then
-    error("Failed to checkout PR: " .. checkout_result)
+  local checkout_result = vim.system({ 'gh', 'pr', 'checkout', pr_number }):wait()
+  if checkout_result.code ~= 0 then
+    error("Failed to checkout PR: " .. checkout_result.stderr)
   end
 end
 
 function M.fetch_threads()
   vim.notify("Fetching PR threads...", vim.log.levels.INFO)
 
-  vim.fn.jobstart('gh pr view --json headRefName --jq .headRefName 2>/dev/null', {
+  vim.fn.jobstart('gh pr view --json headRefName --jq .headRefName', {
     stdout_buffered = true,
     on_stdout = function(_, data)
       if #data == 0 or (data[1] == "" and #data == 1) then
@@ -140,30 +140,63 @@ function M.fetch_threads()
       end
 
       load_threads({}, function(threads, baseRefName)
-        local base_path = vim.fn.trim(vim.fn.system('git rev-parse --show-toplevel')):gsub('%s+$', '')
-        local merge_base = vim.fn.system('git merge-base origin/' .. baseRefName .. ' HEAD'):gsub('%s+$', '')
+        local base_path
+        local merge_base
 
-        local buf_diagnostics = {}
-        for _, thread in pairs(threads) do
-          local hidden = thread.isResolved or thread.isOutdated
-          local has_line = type(thread.startLine) == "number" or type(thread.line) == "number"
-          if has_line and not hidden then
-            local diag = build_diagnostic(base_path, merge_base, thread)
+        local function next()
+          local buf_diagnostics = {}
 
-            if not buf_diagnostics[diag.bufnr] then
-              buf_diagnostics[diag.bufnr] = {}
+          for _, thread in pairs(threads) do
+            local hidden = thread.isResolved or thread.isOutdated
+            local has_line = type(thread.startLine) == "number" or type(thread.line) == "number"
+            if has_line and not hidden then
+              local diag = build_diagnostic(base_path, merge_base, thread)
+
+              if not buf_diagnostics[diag.bufnr] then
+                buf_diagnostics[diag.bufnr] = {}
+              end
+              table.insert(buf_diagnostics[diag.bufnr], diag)
             end
-            table.insert(buf_diagnostics[diag.bufnr], diag)
           end
+
+          vim.diagnostic.reset(namespace)
+          for bufnr, diagnostics in pairs(buf_diagnostics) do
+            vim.diagnostic.set(namespace, bufnr, diagnostics, {})
+          end
+          pr_threads_shown = true
+
+          vim.notify("Loaded all the threads into diagnostics", vim.log.levels.INFO)
         end
 
-        vim.diagnostic.reset(namespace)
-        for bufnr, diagnostics in pairs(buf_diagnostics) do
-          vim.diagnostic.set(namespace, bufnr, diagnostics, {})
-        end
-        pr_threads_shown = true
+        vim.system({ 'git', 'rev-parse', '--show-toplevel' }, nil, function(rev_parse_result)
+          if rev_parse_result.code ~= 0 then
+            vim.schedule(function()
+              vim.notify("Failed to get git root: " .. rev_parse_result.stderr, vim.log.levels.ERROR)
+            end)
+            return
+          end
 
-        vim.notify("Loaded all the threads into diagnostics", vim.log.levels.INFO)
+          base_path = rev_parse_result.stdout:gsub('%s+$', '')
+
+          if merge_base then
+            vim.schedule(next)
+          end
+        end)
+
+        vim.system({ 'git', 'merge-base', 'origin/' .. baseRefName, 'HEAD' }, nil, function(merge_base_result)
+          if merge_base_result.code ~= 0 then
+            vim.schedule(function()
+              vim.notify("Failed to get merge base: " .. merge_base_result.stderr, vim.log.levels.ERROR)
+            end)
+            return
+          end
+
+          merge_base = merge_base_result.stdout:gsub('%s+$', '')
+
+          if base_path then
+            vim.schedule(next)
+          end
+        end)
       end)
     end,
     on_stderr = function(_, stderr_data)
@@ -183,15 +216,19 @@ function M.review()
   M.fetch_threads()
 
   vim.notify("Fetching PR information...", vim.log.levels.INFO)
-  local gh_output = vim.fn.system('gh pr view --json baseRefName --jq .baseRefName 2>/dev/null')
-  if vim.v.shell_error ~= 0 or gh_output == "" then
-    vim.notify("Failed to get parent branch", vim.log.levels.ERROR)
+  local pr_view_result = vim.system({ 'gh', 'pr', 'view', '--json', 'baseRefName', '--jq', '.baseRefName' }):wait()
+  if pr_view_result.code ~= 0 then
+    vim.notify("Failed to get parent branch: " .. pr_view_result.stderr, vim.log.levels.ERROR)
     return
   end
 
-  local parent_branch = "origin/" .. gh_output:gsub('%s+$', '')
-  local merge_base = vim.fn.system('git merge-base ' .. parent_branch .. ' HEAD'):gsub('%s+$', '')
-  vim.cmd('G difftool -y ' .. merge_base)
+  local parent_branch = "origin/" .. pr_view_result.stdout:gsub('%s+$', '')
+  local merge_base_result = vim.system({ 'git', 'merge-base', parent_branch, 'HEAD' }):wait()
+  if merge_base_result.code ~= 0 then
+    vim.notify("Failed to get merge base: " .. merge_base_result.stderr, vim.log.levels.ERROR)
+    return
+  end
+  vim.cmd('G difftool -y ' .. merge_base_result.stdout:gsub('%s+$', ''))
 end
 
 function M.browse()
@@ -199,7 +236,9 @@ function M.browse()
     prompt = "PRs> ",
     actions = {
       ['default'] = function(selected)
-        vim.fn.system('gh pr view ' .. fst(selected) .. ' -w')
+        local pr_number = fst(selected)
+        vim.notify("Opening PR #" .. pr_number, vim.log.levels.INFO)
+        vim.system({ 'gh', 'pr', 'view', pr_number, '-w' })
       end,
       ['ctrl-o'] = function(selected)
         local success, result = pcall(checkout, fst(selected))
