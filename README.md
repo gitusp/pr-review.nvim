@@ -82,3 +82,11 @@ When on a PR branch:
 ## Health Check
 
 Run `:checkhealth pr-review` to verify that all dependencies are properly installed.
+
+## Acknowledgements
+
+This plugin was entirely written with assistance from Claude 3.7 Sonnet. As I'm new to Vim plugin development, any corrections, suggestions, or improvements are greatly welcome!
+
+## Compatibility
+
+This plugin has only been tested on macOS. Contributions and help testing on other platforms are welcome!
