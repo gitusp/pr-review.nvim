@@ -59,7 +59,7 @@ function M.fetch_threads()
       local headRefName = data[1]:gsub('%s+$', '')
 
       local function load_threads(threads, cb, after)
-        local after_arg = after and ' -F after=\'' .. after .. '\'' or ''
+        local after_arg = after and ' -F after=' .. vim.fn.shellescape(after) or ''
         vim.fn.jobstart(
           'gh api graphql -F owner=\'{owner}\' -F name=\'{repo}\' -F headRefName=\'' .. headRefName .. '\'' .. after_arg .. ' -f query=\'' ..
           '  query($name: String!, $owner: String!, $headRefName: String!, $after: String) {' ..
