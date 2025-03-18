@@ -223,12 +223,7 @@ function M.review()
   end
 
   local parent_branch = "origin/" .. pr_view_result.stdout:gsub('%s+$', '')
-  local merge_base_result = vim.system({ 'git', 'merge-base', parent_branch, 'HEAD' }):wait()
-  if merge_base_result.code ~= 0 then
-    vim.notify("Failed to get merge base: " .. merge_base_result.stderr, vim.log.levels.ERROR)
-    return
-  end
-  vim.cmd('G difftool -y ' .. merge_base_result.stdout:gsub('%s+$', ''))
+  vim.cmd('G difftool -y ' .. parent_branch .. '...')
 end
 
 function M.browse()
